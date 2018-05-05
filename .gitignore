@@ -1,0 +1,3 @@
+#Ignore compiled version of graphics.py
+graphics.pyc
+__pycache__/
