@@ -24,12 +24,9 @@ class p3 :
 
         self.origin = np.matrix([[k*p[0]+f[0]],
                                  [k*p[1]+f[1]],
-                                 [k*p[2]+f[2]],])
-        o = self.origin.getA1()
+                                 [k*p[2]+f[2]]])
 
-        self.focalLength = math.sqrt((f[0]-o[0])**2 + (f[1]-o[1])**2 + (f[2]-o[2])**2)
-
-        print('Origin : ' + str(o))
+        self.normalVector = np.matrix([[p[0]], [p[1]], [p[2]]])
 
     def __init__ (self, matrix) :
         self.matrix = matrix
@@ -76,12 +73,28 @@ class p3 :
         p2 = otherPoint.matrix.getA1()
         return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2 + (p1[2]-p2[2])**2)
 
+    def translateScreen (self, scale, along) :
+        if along == 0 :
+            translation = scale * self.normalVector
+            self.focalPoint += translation
+            self.origin += translation
+            self.plane[3] -= scale
+        if along == 1 :
+            translation = scale * self.vI
+            self.focalPoint += translation
+            self.origin += translation
+        if along == 2 :
+            translation = scale * self.vJ
+            self.focalPoint += translation
+            self.origin += translation
+
+
 def main ():
     p3.unit = unit = 10
     p3.width  = width = 64
     p3.height = height = 48
 
-    p3.focalPoint = focalPoint = np.matrix([[32], [24], [-30]])
+    p3.focalPoint = focalPoint = np.matrix([[32.], [24.], [-30.]])
     p3.plane = plane = [0,0,1,0]
     p3.vI = vI = np.matrix([[1.], [0.], [0.]])
     p3.vJ = vJ = np.matrix([[0.], [1.], [0.]])
@@ -89,6 +102,7 @@ def main ():
     p3.setup(p3)
 
     win = GraphWin("Moteur 3D", width*unit, height*unit)
+    quit = False
 
     #Put black background
     background = Rectangle(Point(0, 0), Point(width*unit, height*unit))
@@ -103,13 +117,35 @@ def main ():
     for coord in cubeCoord :
         cube.append(p3(np.matrix(coord)))
 
-    for link in cubeNet :
-        line = Line(cube[link[0]].render(), cube[link[1]].render())
-        line.setFill("white")
-        line.draw(win)
-        lines.append(line)
+    while quit == False :
+        for line in lines :
+            line.undraw()
 
-    win.getMouse()
+        for link in cubeNet :
+            line = Line(cube[link[0]].render(), cube[link[1]].render())
+            line.setFill("white")
+            line.draw(win)
+            lines.append(line)
+
+        input = win.checkKey()
+
+        if input == "Escape" :
+            quit = True
+
+        elif input == "z" :
+            p3.translateScreen(p3, -0.2, 2)
+        elif input == "s" :
+            p3.translateScreen(p3, 0.2, 2)
+        elif input == "q" :
+            p3.translateScreen(p3, -0.2, 1)
+        elif input == "d" :
+            p3.translateScreen(p3, 0.2, 1)
+        elif input == "Up" :
+            p3.translateScreen(p3, 0.2, 0)
+        elif input == "Down" :
+            p3.translateScreen(p3, -0.2, 0)
+
+        time.sleep(1.0/60)
 
 
 main()
