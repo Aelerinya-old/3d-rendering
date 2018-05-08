@@ -26,7 +26,7 @@ class p3 :
                                  [k*p[1]+f[1]],
                                  [k*p[2]+f[2]]])
 
-        self.normalVector = np.matrix([[p[0]], [p[1]], [p[2]]])
+        self.vN = np.matrix([[p[0]], [p[1]], [p[2]]])
 
     def __init__ (self, matrix) :
         self.matrix = matrix
@@ -75,7 +75,7 @@ class p3 :
 
     def translateScreen (self, scale, along) :
         if along == 0 :
-            translation = scale * self.normalVector
+            translation = scale * self.vN
             self.focalPoint += translation
             self.origin += translation
             self.plane[3] -= scale
@@ -88,9 +88,42 @@ class p3 :
             self.focalPoint += translation
             self.origin += translation
 
+    def rotateScreen (self, angle, around) :
+        if around == 0 :
+            axis = self.vN
+        elif around == 1 :
+            axis = self.vI
+        elif around == 2 :
+            axis = self.vJ
+
+        flat = axis.getA1()
+        x = flat[0]
+        y = flat[1]
+        z = flat[2]
+
+        c = math.cos(angle)
+        nc = 1-c
+        s = math.sin(angle)
+
+        rotation = np.matrix([[x**2*nc+c, x*y*nc-z*s, x*z*nc+y*s],
+                            [x*y*nc+z*s, y**2*nc+c, y*z*nc-x*s],
+                            [x*z*nc-y*s, y*z*nc+x*s, z**2*nc+c]])
+
+        self.vI = rotation * self.vI
+        self.vJ = rotation * self.vJ
+
+        if around == 1 or around == 2 :
+            self.origin = self.focalPoint + rotation * (self.origin - self.focalPoint)
+            self.vN = rotation * self.vN
+
+            n = self.vN.getA1()
+            o = self.origin.getA1()
+            self.plane = [n[0], n[1], n[2], -(n[0]*o[0] + n[1]*o[1] + n[2]*o[2])]
+
+
 
 def main ():
-    p3.unit = unit = 10
+    p3.unit = unit = 20
     p3.width  = width = 64
     p3.height = height = 48
 
@@ -132,18 +165,30 @@ def main ():
         if input == "Escape" :
             quit = True
 
-        elif input == "z" :
-            p3.translateScreen(p3, -0.2, 2)
-        elif input == "s" :
-            p3.translateScreen(p3, 0.2, 2)
+        elif input == "a" :
+            p3.translateScreen(p3, -0.4, 2)
+        elif input == "e" :
+            p3.translateScreen(p3, 0.4, 2)
         elif input == "q" :
-            p3.translateScreen(p3, -0.2, 1)
+            p3.translateScreen(p3, -0.4, 1)
         elif input == "d" :
-            p3.translateScreen(p3, 0.2, 1)
-        elif input == "Up" :
-            p3.translateScreen(p3, 0.2, 0)
-        elif input == "Down" :
-            p3.translateScreen(p3, -0.2, 0)
+            p3.translateScreen(p3, 0.4, 1)
+        elif input == "z" :
+            p3.translateScreen(p3, 0.4, 0)
+        elif input == "s" :
+            p3.translateScreen(p3, -0.4, 0)
+        elif input == "u" :
+            p3.rotateScreen(p3, 0.05, 0)
+        elif input == "o" :
+            p3.rotateScreen(p3, -0.05, 0)
+        elif input == "i" :
+            p3.rotateScreen(p3, -0.02, 1)
+        elif input == "k" :
+            p3.rotateScreen(p3, 0.02, 1)
+        elif input == "j" :
+            p3.rotateScreen(p3, -0.02, 2)
+        elif input == "l" :
+            p3.rotateScreen(p3, 0.02, 2)
 
         time.sleep(1.0/60)
 
