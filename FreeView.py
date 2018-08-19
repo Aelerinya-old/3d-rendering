@@ -123,11 +123,11 @@ class p3 :
 
 
 def main ():
-    p3.unit = unit = 20
-    p3.width  = width = 64
-    p3.height = height = 48
+    p3.unit = unit = 10
+    p3.width  = width = 192
+    p3.height = height = 108
 
-    p3.focalPoint = focalPoint = np.matrix([[32.], [24.], [-30.]])
+    p3.focalPoint = focalPoint = np.matrix([[32.], [24.], [-80.]])
     p3.plane = plane = [0,0,1,0]
     p3.vI = vI = np.matrix([[1.], [0.], [0.]])
     p3.vJ = vJ = np.matrix([[0.], [1.], [0.]])
@@ -144,22 +144,15 @@ def main ():
 
     cubeCoord = [[[22],[14],[2]], [[42],[14],[2]], [[42],[34],[2]], [[22],[34],[2]], [[22],[14],[22]], [[42],[14],[22]], [[42],[34],[22]], [[22],[34],[22]]]
     cubeNet = [[0,1], [1,2], [2,3], [3,0], [4,5], [5,6], [6,7], [7,4], [0,4], [1,5], [2,6], [3,7]]
+    cubeCenter = np.matrix([[32], [24], [12]])
     cube = []
     lines = []
+    vNChanged = True
 
     for coord in cubeCoord :
         cube.append(p3(np.matrix(coord)))
 
     while quit == False :
-        for line in lines :
-            line.undraw()
-
-        for link in cubeNet :
-            line = Line(cube[link[0]].render(), cube[link[1]].render())
-            line.setFill("white")
-            line.draw(win)
-            lines.append(line)
-
         input = win.checkKey()
 
         if input == "Escape" :
@@ -183,14 +176,46 @@ def main ():
             p3.rotateScreen(p3, -0.05, 0)
         elif input == "i" :
             p3.rotateScreen(p3, -0.02, 1)
+            vNChanged = True
         elif input == "k" :
             p3.rotateScreen(p3, 0.02, 1)
+            vNChanged = True
         elif input == "j" :
             p3.rotateScreen(p3, -0.02, 2)
+            vNChanged = True
         elif input == "l" :
             p3.rotateScreen(p3, 0.02, 2)
+            vNChanged = True
 
         time.sleep(1.0/60)
+
+        if input == "" or vNChanged == True :
+
+            for point in cube :
+                if vNChanged == True :
+                    flat = point.vN.getA1()
+                    x = flat[0]
+                    y = flat[1]
+                    z = flat[2]
+
+                    c = math.cos(.05)
+                    nc = 1-c
+                    s = math.sin(.05)
+
+                    cubeRotation = np.matrix([[x**2*nc+c, x*y*nc-z*s, x*z*nc+y*s],
+                                        [x*y*nc+z*s, y**2*nc+c, y*z*nc-x*s],
+                                        [x*z*nc-y*s, y*z*nc+x*s, z**2*nc+c]])
+
+                point.rotate(cubeCenter, cubeRotation)
+
+            for line in lines :
+                line.undraw()
+
+            for link in cubeNet :
+                line = Line(cube[link[0]].render(), cube[link[1]].render())
+                line.setFill("white")
+                line.draw(win)
+                lines.append(line)
 
 
 main()
